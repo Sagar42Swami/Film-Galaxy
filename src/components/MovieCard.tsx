@@ -1,5 +1,5 @@
 import React from "react";
-import { Star, Heart } from "lucide-react";
+import { Star, Heart, Clapperboard, MonitorPlay, Film } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Movie } from "../types";
 import { useFavorites } from "../context/FavoritesContext";
@@ -20,146 +20,100 @@ export function MovieCard({ movie, onSelect }: MovieCardProps) {
 
   // Card animation variants
   const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 15 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-      },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
     hover: {
-      scale: 1.05,
-      boxShadow: "0px 10px 20px rgba(0,0,0,0.2)",
-      transition: {
-        duration: 0.3,
-        ease: "easeInOut",
-      },
+      y: -6,
+      boxShadow: "0px 15px 30px rgba(99, 102, 241, 0.15)", // Indigo colored shadow highlight
+      transition: { duration: 0.3, ease: "easeInOut" },
     },
   };
 
-  // Heart button animation variants
-  const heartButtonVariants = {
-    normal: {
-      opacity: 0,
-      scale: 0.8,
-      transition: { duration: 0.2 },
-    },
-    hover: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.2 },
-    },
-  };
-
-  // Heart icon animation
-  const heartIconVariants = {
-    unliked: { scale: 1 },
-    liked: {
-      scale: [1, 1.5, 1],
-      transition: { duration: 0.3 },
-    },
-  };
-
-  // Rating animation variants
-  const ratingVariants = {
-    hidden: { opacity: 0, x: -10 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        delay: 0.3,
-        duration: 0.3,
-      },
-    },
+  const getTypeIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case "movie":
+        return <Film className="w-3.5 h-3.5" />;
+      case "series":
+        return <MonitorPlay className="w-3.5 h-3.5" />;
+      default:
+        return <Clapperboard className="w-3.5 h-3.5" />;
+    }
   };
 
   return (
     <motion.div
       onClick={() => onSelect(movie)}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden cursor-pointer"
+      className="group bg-white/70 dark:bg-slate-900/60 border border-gray-200/50 dark:border-slate-800/50 backdrop-blur-md rounded-2xl shadow-md overflow-hidden cursor-pointer flex flex-col justify-between h-full transition-colors duration-300"
       variants={cardVariants}
       initial="hidden"
       animate="visible"
       whileHover="hover"
       layout
     >
-      <div className="relative aspect-[2/3] w-full group">
+      <div className="relative aspect-[2/3] w-full overflow-hidden">
+        {/* Cover Image with Zoom Effect */}
         <motion.img
           src={
             movie.Poster !== "N/A"
               ? movie.Poster
-              : "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
+              : "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=800"
           }
           alt={movie.Title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.3 }}
           loading="lazy"
         />
+
+        {/* Cinematic dark overlay on image hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+        {/* Type Badge */}
+        <div className="absolute top-3 left-3 px-2.5 py-1 bg-slate-950/70 border border-slate-700/50 backdrop-blur-md rounded-lg text-white flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider">
+          {getTypeIcon(movie.Type)}
+          <span>{movie.Type}</span>
+        </div>
+
+        {/* Heart Favorite Button */}
         <motion.button
           onClick={handleFavoriteClick}
-          className="absolute top-2 right-2 p-2 bg-black/50 rounded-full"
+          className="absolute top-3 right-3 p-2 bg-slate-950/70 border border-slate-700/50 backdrop-blur-md rounded-lg text-white hover:bg-red-500/80 hover:border-red-500/50 transition-all z-10"
           aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
-          variants={heartButtonVariants}
-          initial="normal"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          animate={favorite ? "hover" : "normal"}
         >
-          <motion.div
-            variants={heartIconVariants}
-            animate={favorite ? "liked" : "unliked"}
-          >
-            <Heart
-              className={`w-5 h-5 ${
-                favorite ? "text-red-500 fill-red-500" : "text-white"
-              }`}
-            />
-          </motion.div>
+          <Heart
+            className={`w-4 h-4 transition-colors ${
+              favorite ? "text-red-500 fill-red-500" : "text-white"
+            }`}
+          />
         </motion.button>
-        {movie.imdbRating && (
-          <motion.div
-            className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 rounded-md text-white flex items-center"
-            variants={ratingVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.div
-              animate={{
-                rotate: [0, 10, -10, 10, 0],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{ duration: 1, delay: 0.5 }}
-            >
-              <Star className="w-4 h-4 text-yellow-400 mr-1" />
-            </motion.div>
-            <span className="text-sm font-medium">{movie.imdbRating}</span>
-          </motion.div>
+
+        {/* Rating Badge */}
+        {movie.imdbRating && movie.imdbRating !== "N/A" && (
+          <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-slate-950/70 border border-slate-700/50 backdrop-blur-md rounded-lg text-white flex items-center">
+            <Star className="w-3.5 h-3.5 text-amber-400 mr-1.5 fill-amber-400" />
+            <span className="text-xs font-bold">{movie.imdbRating}</span>
+          </div>
         )}
       </div>
-      <motion.div
-        className="p-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
+
+      {/* Card Info Details */}
+      <div className="p-4 flex-grow flex flex-col justify-between">
+        <h3 className="text-base font-bold text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 line-clamp-2 transition-colors duration-200">
           {movie.Title}
         </h3>
-        <motion.div
-          className="mt-2 flex items-center justify-between"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-2.5 flex items-center justify-between">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded">
             {movie.Year}
           </span>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </motion.div>
   );
 }
