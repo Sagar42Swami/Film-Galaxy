@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { SearchBar } from "./components/SearchBar";
 import { MovieCard } from "./components/MovieCard";
 import { SkeletonGrid } from "./components/SkeletonCard";
@@ -8,6 +8,7 @@ import { FavoritesProvider, useFavorites } from "./context/FavoritesContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, ChevronLeft, ChevronRight, ListCollapse, Plus, Trash2, Library, Sparkles } from "lucide-react";
 import { useDebounce } from "./hooks/useDebounce";
+import { topMovies } from "./data/topMovies";
 import type { Movie, SearchResponse } from "./types";
 
 const OMDB_API_KEY = import.meta.env.VITE_API_KEY || "3a9b5307";
@@ -50,6 +51,38 @@ function App() {
     deleteWatchlist,
     getWatchlistMovies,
   } = useFavorites();
+
+  // Client-side filter and sort for local Top 50 dataset
+  const displayedTopMovies = useMemo(() => {
+    let result = [...topMovies];
+    
+    // Apply filters
+    if (selectedType) {
+      result = result.filter(
+        (m) => m.Type.toLowerCase() === selectedType.toLowerCase()
+      );
+    }
+    if (selectedYear) {
+      result = result.filter((m) => m.Year.includes(selectedYear));
+    }
+    
+    // Apply sorting
+    if (sortBy === "rating") {
+      result.sort((a, b) => {
+        const rA = parseFloat(a.imdbRating || "0");
+        const rB = parseFloat(b.imdbRating || "0");
+        return rB - rA;
+      });
+    } else if (sortBy === "year-desc") {
+      result.sort((a, b) => parseInt(b.Year) - parseInt(a.Year));
+    } else if (sortBy === "year-asc") {
+      result.sort((a, b) => parseInt(a.Year) - parseInt(b.Year));
+    } else if (sortBy === "title") {
+      result.sort((a, b) => a.Title.localeCompare(b.Title));
+    }
+    
+    return result;
+  }, [selectedType, selectedYear, sortBy]);
 
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== "undefined") {
@@ -475,6 +508,51 @@ function App() {
                   <span>Next</span>
                   <ChevronRight size={16} />
                 </motion.button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Landing/Trending IMDb Top 50 Section */}
+        {!query.trim() && !showWatchlists && !loading && !error && (
+          <div className="space-y-6 animate-fade-in">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-indigo-500 animate-pulse" />
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                  IMDb Global Top 50 Movies (Trending)
+                </h3>
+              </div>
+              {(selectedType || selectedYear || sortBy) && (
+                <button
+                  onClick={() => {
+                    setSelectedType("");
+                    setSelectedYear("");
+                    setSortBy("");
+                  }}
+                  className="text-xs font-bold text-indigo-500 hover:underline"
+                >
+                  Reset Filters
+                </button>
+              )}
+            </div>
+
+            {displayedTopMovies.length === 0 ? (
+              <div className="text-center py-20 bg-slate-100/50 dark:bg-slate-900/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                <ListCollapse className="w-12 h-12 mx-auto text-slate-400 mb-3" />
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                  No top movies match your selected filters.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {displayedTopMovies.map((movie) => (
+                  <MovieCard
+                    key={movie.imdbID}
+                    movie={movie}
+                    onSelect={handleSelectMovie}
+                  />
+                ))}
               </div>
             )}
           </div>
