@@ -154,6 +154,7 @@ export function SearchBar({
                     alt={movie.Title}
                     className="w-8 h-12 object-cover rounded shadow"
                     loading="lazy"
+                    referrerPolicy="no-referrer"
                   />
                   <div className="flex-grow min-w-0">
                     <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
