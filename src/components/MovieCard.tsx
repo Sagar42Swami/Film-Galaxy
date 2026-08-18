@@ -68,6 +68,10 @@ export function MovieCard({ movie, onSelect }: MovieCardProps) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
           loading="lazy"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src =
+              "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=800";
+          }}
         />
 
         {/* Cinematic dark overlay on image hover */}
