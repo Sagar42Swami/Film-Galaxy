@@ -181,6 +181,10 @@ export function MovieDetailsModal({ movie, onClose, onSearchName }: ExtendedMovi
                   }
                   alt={fullDetails?.Title}
                   className="w-full h-full object-cover min-h-[300px] md:min-h-full"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=800";
+                  }}
                 />
 
                 {/* Bottom Left Cover Buttons (Quick Fav, Share) */}
